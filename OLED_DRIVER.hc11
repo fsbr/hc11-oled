@@ -1,0 +1,156 @@
+********************************************************************************
+*               DRIVER code for SSD1306 OLED Display
+*               Thomas Fuller: December 2024
+* 
+********************************************************************************
+portb       equ     $1004
+
+reset       equ     %00000100               ; PORTB OR reset on turns just reset HIGH 
+resetm      equ     %11111011               ; PORTB AND resetm turns just the reset pin LOW 
+
+cs          equ     %00010000               ; PORTB OR cs turns just chip select HIGH 
+csm         equ     %11101111               ; PORTB AND csm turns just the chip select LOW 
+
+dc          equ     %00001000               ; PORTB OR dc means we are sending data (DC HIGH)
+dcm         equ     %11110111               ; PORTB AND dcm means we are sending a command (DC LOW)
+
+clk         equ     %00000001               ; PORTB OR clk means the clock is going high
+clkm        equ     %11111110               ; PORTB AND clkm means the clock is going low
+
+din         equ     %00000010               ; PORTB OR din means data in (to screen) is low
+dinm        equ     %11111101               ; PORTB AND dinm means data to screen is HIGH
+
+spi_send    rmb     1                       ; buffer to send our data out
+*******************************************************************************
+*       POWER ON SEQUENCE
+*       Following 8.9 of the SSD1306 Docs, timing diagram 
+*       Reset is pin B2 
+*******************************************************************************
+
+    ORG     $5000
+reset_high:
+    ldaa    #reset
+    oraa    portb
+    staa    portb
+    rts
+
+reset_low:
+    ldaa    #resetm
+    anda    portb
+    staa    portb
+    rts
+
+cs_high:
+    ldaa    #cs
+    oraa    portb
+    staa    portb
+    rts
+
+cs_low:
+    ldaa    #csm
+    anda    portb
+    staa    portb
+    rts
+
+dc_high:
+    ldaa    #dc
+    oraa    portb
+    staa    portb
+    rts
+
+dc_low:
+    ldaa    #dcm
+    anda    portb
+    staa    portb
+    rts
+
+clk_high:
+    ldaa    #clk
+    oraa    portb
+    staa    portb
+    rts
+
+clk_low:
+    ldaa    #clkm
+    anda    portb
+    staa    portb
+    rts
+
+din_high:
+    ldaa    #din
+    oraa    portb
+    staa    portb
+    rts
+
+din_low:
+    ldaa    #dinm
+    anda    portb
+    staa    portb
+    rts
+
+
+    ORG     $5200
+power_on:
+    jsr     cs_high             ; to power on the device, the initial states should be
+    jsr     reset_high          ; reset should  start high, and cs should start high
+    jsr     reset_low           ; toggle reset low, then high
+    jsr     reset_high          ; ^^
+
+*   Stuff we have to do before we send the message
+
+    ldaa    #$af                ; data we want to send
+    staa    spi_send            ; store data at the spi_send location
+
+    jsr     cs_low              ; send message start
+
+    jsr     dc_low              ; send a command
+
+    jsr     spi_sb              ; send $af over
+
+    ldaa    #$a4                ; a4 is command to follow the onboard vram turn whole screen on
+    staa    spi_send           ; store $a4 to send it over
+    jsr     spi_sb              ; just trying it why not
+
+    ldaa    #$20                ; set addressing mode to horizontal
+    staa    spi_send
+    jsr     spi_sb
+
+    jsr     dc_high             ; done sending the command, high means data
+
+    ldy     #$80               ; load 128 bytes
+shoot:
+    ldaa    #$aa                ; this little subroutine is just to try to shoot data over
+    staa    spi_send            ; in a pattern
+    jsr     spi_sb
+    dey
+    bne     shoot
+
+    jsr     dc_low              ; send a command again
+    ldaa    #$a4                ; a4 is command to follow the onboard vram turn whole screen on
+    staa    spi_send           ; store $a4 to send it over
+    jsr     spi_sb              ; just trying it why not
+
+*   Send message end
+    jsr     cs_high             ; when we are done sending the message
+    swi
+
+spi_sb:
+    ldx     #$08                ; there are 8 bits in the byte stored at spi_send
+    ldab    spi_send            ; the data we want to sent 
+sb_loop:
+    jsr     clk_low             ; clock low
+    rolb                        ; look at the MSB
+    bcs     dh                  ; set din high 
+    bcc     dl                  ; set din low
+dh:
+    jsr     din_high
+    bra     data_set
+dl: 
+    jsr     din_low
+    bra     data_set
+data_set:
+    jsr     clk_high            ; then put the clock high
+    dex                         ; decrementx
+    bne     sb_loop             ; if we aren't on iteration 8, redo the loop
+
+    rts                         ; spi_sb rts
