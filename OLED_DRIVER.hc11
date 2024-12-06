@@ -88,7 +88,9 @@ din_low:
     staa    portb
     rts
 
-
+*******************************************************************************
+*       Subroutine to power on the screen and try to write data to it         *
+*******************************************************************************
     ORG     $5200
 power_on:
     jsr     cs_high             ; to power on the device, the initial states should be
@@ -102,38 +104,74 @@ power_on:
     staa    spi_send            ; store data at the spi_send location
 
     jsr     cs_low              ; send message start
-
     jsr     dc_low              ; send a command
-
     jsr     spi_sb              ; send $af over
 
     ldaa    #$a4                ; a4 is command to follow the onboard vram turn whole screen on
-    staa    spi_send           ; store $a4 to send it over
+    staa    spi_send            ; store $a4 to send it over
     jsr     spi_sb              ; just trying it why not
 
     ldaa    #$20                ; set addressing mode to horizontal
+    staa    spi_send            ; this first command just lets the device know its time
+    jsr     spi_sb
+
+    ldaa    #$00                ; this command actually sets the horizontal mode
     staa    spi_send
     jsr     spi_sb
 
+    ldaa    #$21                ; set column address
+    staa    spi_send
+    jsr     spi_sb
+
+    ldaa    #2                  ; start column is 2
+    staa    spi_send
+    jsr     spi_sb
+
+    ldaa    #64
+    staa    spi_send            ; end column is 125
+    jsr     spi_sb
+
+    ldaa    #$22                ; set page address
+    staa    spi_send            
+    jsr     spi_sb
+
+    ldaa    #1
+    staa    spi_send            
+    jsr     spi_sb
+
+    ldaa    #7
+    staa    spi_send            
+    jsr     spi_sb
+    
+
     jsr     dc_high             ; done sending the command, high means data
 
-    ldy     #$80               ; load 128 bytes
+    ldy     #$ff                ; load 128 bytes, to initialize the "shoot" subroutine
 shoot:
-    ldaa    #$aa                ; this little subroutine is just to try to shoot data over
+    ldaa    #$ff                ; this little subroutine is just to try to shoot data over
     staa    spi_send            ; in a pattern
     jsr     spi_sb
     dey
     bne     shoot
 
     jsr     dc_low              ; send a command again
-    ldaa    #$a4                ; a4 is command to follow the onboard vram turn whole screen on
-    staa    spi_send           ; store $a4 to send it over
-    jsr     spi_sb              ; just trying it why not
+
+*    ldaa    #$ae               ; a4 is command to follow the onboard vram turn whole screen on
+*    staa    spi_send           ; store $a4 to send it over
+*    jsr     spi_sb             ; just trying it why not
+*
+*    ldaa    #$af               ; a4 is command to follow the onboard vram turn whole screen on
+*    staa    spi_send           ; store $a4 to send it over
+*    jsr     spi_sb             ; just trying it why not
 
 *   Send message end
     jsr     cs_high             ; when we are done sending the message
     swi
 
+
+*******************************************************************************
+*           SEND BYTE OVER SPI PROTOCOL
+*******************************************************************************
 spi_sb:
     ldx     #$08                ; there are 8 bits in the byte stored at spi_send
     ldab    spi_send            ; the data we want to sent 
@@ -150,7 +188,7 @@ dl:
     bra     data_set
 data_set:
     jsr     clk_high            ; then put the clock high
-    dex                         ; decrementx
+    dex                         ; decrement x
     bne     sb_loop             ; if we aren't on iteration 8, redo the loop
 
     rts                         ; spi_sb rts
