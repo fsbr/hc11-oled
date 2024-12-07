@@ -3,96 +3,113 @@
 *               Thomas Fuller: December 2024
 * 
 ********************************************************************************
-portb       equ     $1004
+porta       equ     $1000
+portd       equ     $1008
+ddrd        equ     $1009
 
-reset       equ     %00000100               ; PORTB OR reset on turns just reset HIGH 
-resetm      equ     %11111011               ; PORTB AND resetm turns just the reset pin LOW 
+pactl       equ     $1026
+tctl1       equ     $1020
 
-cs          equ     %00010000               ; PORTB OR cs turns just chip select HIGH 
-csm         equ     %11101111               ; PORTB AND csm turns just the chip select LOW 
+reset       equ     %00100000               ; PORTA OR reset on turns just reset HIGH 
+resetm      equ     %11011111               ; PORTA AND resetm turns just the reset pin LOW 
 
-dc          equ     %00001000               ; PORTB OR dc means we are sending data (DC HIGH)
-dcm         equ     %11110111               ; PORTB AND dcm means we are sending a command (DC LOW)
+cs          equ     %10000000               ; PORTA OR cs turns just chip select HIGH 
+csm         equ     %01111111               ; PORTA AND csm turns just the chip select LOW 
 
-clk         equ     %00000001               ; PORTB OR clk means the clock is going high
-clkm        equ     %11111110               ; PORTB AND clkm means the clock is going low
+dc          equ     %01000000               ; PORTA OR dc means we are sending data (DC HIGH)
+dcm         equ     %10111111               ; PORTA AND dcm means we are sending a command (DC LOW)
 
-din         equ     %00000010               ; PORTB OR din means data in (to screen) is low
-dinm        equ     %11111101               ; PORTB AND dinm means data to screen is HIGH
+clk         equ     %00001000               ; PORTA OR clk means the clock is going high
+clkm        equ     %11110111               ; PORTA AND clkm means the clock is going low
+
+din         equ     %00010000               ; PORTA OR din means data in (to screen) is low
+dinm        equ     %11101111               ; PORTA AND dinm means data to screen is HIGH
 
 spi_send    rmb     1                       ; buffer to send our data out
+
 *******************************************************************************
 *       POWER ON SEQUENCE
 *       Following 8.9 of the SSD1306 Docs, timing diagram 
 *       Reset is pin B2 
 *******************************************************************************
 
-    ORG     $5000
+    ORG     $2000
 reset_high:
     ldaa    #reset
-    oraa    portb
-    staa    portb
+    oraa    porta
+    staa    porta
     rts
 
 reset_low:
     ldaa    #resetm
-    anda    portb
-    staa    portb
+    anda    porta
+    staa    porta
     rts
 
 cs_high:
     ldaa    #cs
-    oraa    portb
-    staa    portb
+    oraa    porta
+    staa    porta
     rts
 
 cs_low:
     ldaa    #csm
-    anda    portb
-    staa    portb
+    anda    porta
+    staa    porta
     rts
 
 dc_high:
     ldaa    #dc
-    oraa    portb
-    staa    portb
+    oraa    porta
+    staa    porta
     rts
 
 dc_low:
     ldaa    #dcm
-    anda    portb
-    staa    portb
+    anda    porta
+    staa    porta
     rts
 
 clk_high:
     ldaa    #clk
-    oraa    portb
-    staa    portb
+    oraa    portd
+    staa    portd
     rts
 
 clk_low:
     ldaa    #clkm
-    anda    portb
-    staa    portb
+    anda    portd
+    staa    portd
     rts
 
 din_high:
     ldaa    #din
-    oraa    portb
-    staa    portb
+    oraa    porta
+    staa    porta
     rts
 
 din_low:
     ldaa    #dinm
-    anda    portb
-    staa    portb
+    anda    porta
+    staa    porta
     rts
 
 *******************************************************************************
 *       Subroutine to power on the screen and try to write data to it         *
 *******************************************************************************
     ORG     $5200
+
+    ldaa    #$80                ; PACTL needs to have bit 7 equal 1. 
+    staa    pactl
+
+    ldaa    clk                 ; configure port d clock pin as an output
+    oraa    ddrd
+    staa    ddrd
+
+     
+
 power_on:
+    jsr     dc_high             ; set data/command line high to start
     jsr     cs_high             ; to power on the device, the initial states should be
     jsr     reset_high          ; reset should  start high, and cs should start high
     jsr     reset_low           ; toggle reset low, then high
@@ -123,48 +140,81 @@ power_on:
     staa    spi_send
     jsr     spi_sb
 
-    ldaa    #2                  ; start column is 2
+    ldaa    #0                 ; start column is the value in A
     staa    spi_send
     jsr     spi_sb
 
-    ldaa    #64
-    staa    spi_send            ; end column is 125
+    ldaa    #127
+    staa    spi_send            ; end column is the value in A
     jsr     spi_sb
 
     ldaa    #$22                ; set page address
     staa    spi_send            
     jsr     spi_sb
 
-    ldaa    #1
+    ldaa    #0                  ; start page 0
     staa    spi_send            
     jsr     spi_sb
 
-    ldaa    #7
+    ldaa    #7                  ; set end page
     staa    spi_send            
     jsr     spi_sb
     
 
     jsr     dc_high             ; done sending the command, high means data
 
-    ldy     #$ff                ; load 128 bytes, to initialize the "shoot" subroutine
+    ldy     #$2000                ; load 8192 (hex 2000)  pixes is the whole thing bytes, to initialize the "shoot" subroutine
 shoot:
-    ldaa    #$ff                ; this little subroutine is just to try to shoot data over
+    ldaa    #$00                ; this little subroutine is just to try to shoot data over
     staa    spi_send            ; in a pattern
     jsr     spi_sb
     dey
     bne     shoot
 
-    jsr     dc_low              ; send a command again
+    jsr     dc_low              ; let the screen know we are sending commands
+* long ass code just to get something running, then we collapse the prototype
+* into subroutines
+    ldaa    #$21                ; set column address
+    staa    spi_send
+    jsr     spi_sb
 
-*    ldaa    #$ae               ; a4 is command to follow the onboard vram turn whole screen on
-*    staa    spi_send           ; store $a4 to send it over
-*    jsr     spi_sb             ; just trying it why not
-*
-*    ldaa    #$af               ; a4 is command to follow the onboard vram turn whole screen on
-*    staa    spi_send           ; store $a4 to send it over
-*    jsr     spi_sb             ; just trying it why not
+    ldaa    #0                 ; start column is the value in A
+    staa    spi_send
+    jsr     spi_sb
+
+    ldaa    #127
+    staa    spi_send            ; end column is the value in A
+    jsr     spi_sb
+
+
+    ldaa    #$22                ; set page address
+    staa    spi_send            
+    jsr     spi_sb
+
+    ldaa    #7                  ; start page 0
+    staa    spi_send            
+    jsr     spi_sb
+
+    ldaa    #7                  ; set end page
+    staa    spi_send            
+    jsr     spi_sb
+
+    jsr     cs_high             ; just to mark the position
+    jsr     cs_low              ; in the logic analyzer
+    jsr     dc_high             ; we are sending data again
+
+    ldy     #$08                ; a character is 8 bytes of pixel data
+    ldx     #char_h              ; load the memory address of the letter h
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_e
+    jsr     write_char
+
+    
 
 *   Send message end
+    jsr     dc_high             ; put dc back how we found it!
     jsr     cs_high             ; when we are done sending the message
     swi
 
@@ -192,3 +242,30 @@ data_set:
     bne     sb_loop             ; if we aren't on iteration 8, redo the loop
 
     rts                         ; spi_sb rts
+
+*******************************************************************************
+*       WRITE CHAR
+*       There is probably a smarter way but for now we have to ldy with 8
+*       then store the immediate value of the char we wnat
+*       then call write_char
+*       i.e. 
+*******************************************************************************
+write_char:
+    ldaa    0,x 
+    staa    spi_send
+    pshx                        ; preserve x on the stack
+    jsr     spi_sb              ; do your thing with a new x
+    pulx                        ; get x back from the stack
+    inx
+    dey
+    bne     write_char
+    rts
+
+*******************************************************************************
+*           FONT DATA
+*******************************************************************************
+
+    ORG     $6000
+
+char_e     FCB      $00,$fe,$92,$92,$92,$82,$82,$00   
+char_h     FCB      $00,$fe,$10,$10,$10,$10,$fe,$00
