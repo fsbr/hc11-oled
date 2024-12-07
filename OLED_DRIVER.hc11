@@ -191,7 +191,7 @@ shoot:
     staa    spi_send            
     jsr     spi_sb
 
-    ldaa    #7                  ; start page 0
+    ldaa    #6                  ; start page 0
     staa    spi_send            
     jsr     spi_sb
 
@@ -204,12 +204,109 @@ shoot:
     jsr     dc_high             ; we are sending data again
 
     ldy     #$08                ; a character is 8 bytes of pixel data
-    ldx     #char_h              ; load the memory address of the letter h
+    ldx     #char_A              ; load the memory address of the letter h
     jsr     write_char
 
     ldy     #$08
-    ldx     #char_e
+    ldx     #char_B
     jsr     write_char
+
+    ldy     #$08
+    ldx     #char_C
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_D
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_E
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_F
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_G
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_H
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_I
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_J
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_K
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_L
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_M
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_N
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_O
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_P
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_Q
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_R
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_S
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_T
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_U
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_V
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_W
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_X
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_Y
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_Z
+    jsr     write_char
+
 
     
 
@@ -262,10 +359,38 @@ write_char:
     rts
 
 *******************************************************************************
-*           FONT DATA
+*           FONT DATA FOR BROCOLLI SANS
+*           basicaly the labels char_A are pointers to the start of the font data
 *******************************************************************************
 
     ORG     $6000
 
-char_e     FCB      $00,$fe,$92,$92,$92,$82,$82,$00   
-char_h     FCB      $00,$fe,$10,$10,$10,$10,$fe,$00
+char_sp     FCB     $00,$00,$00,$00,$00,$00,$00,$00
+char_A      FCB     $00,$fc,$12,$12,$12,$12,$fc,$00
+char_B      FCB     $00,$fe,$92,$92,$92,$6c,$00,$00
+char_C      FCB     $00,$fe,$82,$82,$82,$82,$82,$00
+char_D      FCB     $00,$fe,$82,$82,$44,$38,$00,$00
+char_E      FCB     $00,$fe,$92,$92,$92,$82,$82,$00   
+char_F      FCB     $00,$fe,$12,$12,$12,$02,$00,$00
+char_G      FCB     $00,$fc,$82,$82,$92,$92,$74,$00
+char_H      FCB     $00,$fe,$10,$10,$10,$10,$fe,$00
+char_I      FCB     $00,$82,$82,$fe,$82,$82,$00,$00
+char_J      FCB     $00,$62,$82,$42,$3e,$02,$00,$00
+char_K      FCB     $00,$fe,$10,$28,$44,$82,$00,$00
+char_L      FCB     $00,$fe,$80,$80,$80,$80,$80,$00
+char_M      FCB     $00,$fe,$04,$08,$08,$04,$fe,$00
+char_N      FCB     $00,$fe,$04,$08,$10,$20,$fe,$00
+char_O      FCB     $00,$fe,$82,$82,$82,$82,$fe,$00
+char_P      FCB     $00,$fe,$12,$12,$12,$0c,$00,$00
+char_Q      FCB     $00,$7c,$82,$92,$a2,$42,$bc,$00
+char_R      FCB     $00,$fe,$12,$12,$32,$cc,$00,$00
+char_S      FCB     $00,$9e,$92,$92,$92,$92,$f2,$00
+char_T      FCB     $00,$02,$02,$fe,$02,$02,$00,$00 
+char_U      FCB     $00,$fe,$80,$80,$80,$80,$fe,$00
+char_V      FCB     $00,$3e,$40,$80,$40,$3e,$00,$00
+char_W      FCB     $00,$fe,$40,$20,$20,$40,$fe,$00
+char_X      FCB     $00,$c6,$28,$10,$28,$c6,$00,$00
+char_Y      FCB     $00,$0e,$10,$f0,$10,$0e,$00,$00
+char_Z      FCB     $00,$c2,$a2,$92,$8a,$86,$00,$00
+
+
