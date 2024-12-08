@@ -204,75 +204,11 @@ shoot:
     jsr     dc_high             ; we are sending data again
 
     ldy     #$08                ; a character is 8 bytes of pixel data
-    ldx     #char_A              ; load the memory address of the letter h
+    ldx     #char_I              ; load the memory address of the letter h
     jsr     write_char
 
     ldy     #$08
-    ldx     #char_B
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_C
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_D
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_E
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_F
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_G
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_H
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_I
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_J
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_K
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_L
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_M
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_N
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_O
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_P
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_Q
-    jsr     write_char
-
-    ldy     #$08
-    ldx     #char_R
+    ldx     #char_sp
     jsr     write_char
 
     ldy     #$08
@@ -284,19 +220,39 @@ shoot:
     jsr     write_char
 
     ldy     #$08
-    ldx     #char_U
+    ldx     #char_I
     jsr     write_char
 
     ldy     #$08
-    ldx     #char_V
+    ldx     #char_L
     jsr     write_char
 
     ldy     #$08
-    ldx     #char_W
+    ldx     #char_L
     jsr     write_char
 
     ldy     #$08
-    ldx     #char_X
+    ldx     #char_sp
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_L
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_I
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_K
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_E
+    jsr     write_char
+
+    ldy     #$08
+    ldx     #char_sp
     jsr     write_char
 
     ldy     #$08
@@ -304,8 +260,52 @@ shoot:
     jsr     write_char
 
     ldy     #$08
-    ldx     #char_Z
+    ldx     #char_O
     jsr     write_char
+
+    ldy     #$08
+    ldx     #char_U
+    jsr     write_char
+
+*    ldy     #$08
+*    ldx     #char_Q
+*    jsr     write_char
+*
+*    ldy     #$08
+*    ldx     #char_R
+*    jsr     write_char
+*
+*    ldy     #$08
+*    ldx     #char_S
+*    jsr     write_char
+*
+*    ldy     #$08
+*    ldx     #char_T
+*    jsr     write_char
+*
+*    ldy     #$08
+*    ldx     #char_U
+*    jsr     write_char
+*
+*    ldy     #$08
+*    ldx     #char_V
+*    jsr     write_char
+*
+*    ldy     #$08
+*    ldx     #char_W
+*    jsr     write_char
+*
+*    ldy     #$08
+*    ldx     #char_X
+*    jsr     write_char
+*
+*    ldy     #$08
+*    ldx     #char_Y
+*    jsr     write_char
+*
+*    ldy     #$08
+*    ldx     #char_Z
+*    jsr     write_char
 
 
     
